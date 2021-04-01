@@ -84,7 +84,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: package
-          path: '${{ github.workspace }}/target/func-${{ env.APPLICATION_NAME }}-${{ env.ENVIRONMENT }}-001/*.jar'
+          path: '${{ github.workspace }}/target/azure-functions/func-${{ env.APPLICATION_NAME }}-${{ env.ENVIRONMENT }}-001/*.jar'
           retention-days: 1
   deploy:
     needs: [manage-infrastructure, build]
