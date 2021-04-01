@@ -53,8 +53,7 @@ jobs:
           -auto-approve \
           -var="environment=$ENVIRONMENT"
         working-directory: '${{ github.workspace }}/terraform'
-  build-and-deploy:
-    needs: manage-infrastructure
+  build:
     runs-on: ubuntu-20.04
     env:
       APPLICATION_NAME: 'demo-5954-3415-1150-6730'
@@ -63,10 +62,6 @@ jobs:
         run: |
           TAG_NAME=${GITHUB_REF#refs/*/}
           echo "ENVIRONMENT=${TAG_NAME:4}" >> $GITHUB_ENV
-      - name: Login to Azure
-        uses: azure/login@v1
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
       - name: Checkout code
         uses: actions/checkout@v2
       - name: Set up JDK 11
@@ -80,8 +75,36 @@ jobs:
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
             ${{ runner.os }}-maven-
-      - name: Build and deploy with Maven
+      - name: Build with Maven
         run: |
-          mvn package azure-functions:deploy -Pprod,azure -DskipTests \
+          mvn package azure-functions:package -Pprod,azure \
           -DfunctionResourceGroup=rg-${{ env.APPLICATION_NAME }}-${{ env.ENVIRONMENT }}-001 \
           -DfunctionAppName=func-${{ env.APPLICATION_NAME }}-${{ env.ENVIRONMENT }}-001
+      - name: Temporarily save package
+        uses: actions/upload-artifact@v2
+        with:
+          name: package
+          path: '${{ github.workspace }}/target/func-${{ env.APPLICATION_NAME }}-${{ env.ENVIRONMENT }}-001/*.jar'
+          retention-days: 1
+  deploy:
+    needs: [manage-infrastructure, build]
+    runs-on: ubuntu-20.04
+    env:
+      APPLICATION_NAME: 'demo-5954-3415-1150-6730'
+    steps:
+      - name: Set environment variables
+        run: |
+          TAG_NAME=${GITHUB_REF#refs/*/}
+          echo "ENVIRONMENT=${TAG_NAME:4}" >> $GITHUB_ENV
+      - uses: actions/download-artifact@v2
+        with:
+          name: package
+      - name: Login to Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+      - name: 'Deploy to Azure App Service'
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: func-${{ env.APPLICATION_NAME }}-${{ env.ENVIRONMENT }}-001
+          package: '*'
