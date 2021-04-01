@@ -84,7 +84,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: package
-          path: '${{ github.workspace }}/target/azure-functions/func-${{ env.APPLICATION_NAME }}-${{ env.ENVIRONMENT }}-001/*.jar'
+          path: '${{ github.workspace }}/target/azure-functions/func-${{ env.APPLICATION_NAME }}-${{ env.ENVIRONMENT }}-001/'
           retention-days: 1
   deploy:
     needs: [manage-infrastructure, build]
@@ -99,7 +99,7 @@ jobs:
       - uses: actions/download-artifact@v2
         with:
           name: package
-          path: func-${{ env.APPLICATION_NAME }}-${{ env.ENVIRONMENT }}-001.jar
+          path: func-${{ env.APPLICATION_NAME }}-${{ env.ENVIRONMENT }}-001
       - name: Login to Azure
         uses: azure/login@v1
         with:
@@ -108,4 +108,4 @@ jobs:
         uses: Azure/functions-action@v1
         with:
           app-name: func-${{ env.APPLICATION_NAME }}-${{ env.ENVIRONMENT }}-001
-          package: func-${{ env.APPLICATION_NAME }}-${{ env.ENVIRONMENT }}-001.jar
+          package: func-${{ env.APPLICATION_NAME }}-${{ env.ENVIRONMENT }}-001
