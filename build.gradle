@@ -46,8 +46,8 @@ jar {
 }
 
 azurefunctions {
-    resourceGroup = "rg-spring-function"
-    appName = "spring-function"
+    resourceGroup = "${System.properties['functionResourceGroup']}"
+    appName = "${System.properties['functionAppName']}"
     appSettings {
         WEBSITE_RUN_FROM_PACKAGE = '1'
         FUNCTIONS_EXTENSION_VERSION = '~3'
